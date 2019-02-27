@@ -1,7 +1,7 @@
 import { Component } from "@angular/core";
 import { Platform } from "@ionic/angular";
-
-declare let Purchases;
+import { Purchases, ATTRIBUTION_NETWORKS } from "@ionic-native/purchases/ngx";
+import { StatusBar } from "@ionic-native/status-bar/ngx";
 
 @Component({
   selector: "app-home",
@@ -9,31 +9,31 @@ declare let Purchases;
   styleUrls: ["home.page.scss"]
 })
 export class HomePage {
-  constructor(public platform: Platform) {
+  constructor(
+    public platform: Platform,
+    public purchases: Purchases,
+    public statusBar: StatusBar
+  ) {
     platform.ready().then(() => {
-      Purchases.setDebugLogsEnabled(true);
-      Purchases.setup(
+      this.statusBar.hide();
+      this.purchases.setDebugLogsEnabled(true);
+      this.purchases.setup(
         "LQmxAoIaaQaHpPiWJJayypBDhIpAZCZN",
         "purchases_sample_id_4"
       );
-      console.log("PURCHASES setup");
-      Purchases.setAllowSharingStoreAccount(true);
-      Purchases.setUpdatedPurchaserInfoListener(info => {
+      this.purchases.setAllowSharingStoreAccount(true);
+      this.purchases.onPurchaserInfoUpdated().subscribe(info => {
         console.log(
           "PURCHASES updatedPurchaserInfoReceived " + JSON.stringify(info)
         );
+      }, error => {
+        console.log("PURCHASES updatedPurchaserInfoReceived " + JSON.stringify(error));
       });
-      Purchases.removeUpdatedPurchaserInfoListener();
-      Purchases.getPurchaserInfo(info => {
+
+      this.purchases.getPurchaserInfo().subscribe(info => {
         console.log("PURCHASES getPurchaserInfo " + JSON.stringify(info));
       });
-      Purchases.setUpdatedPurchaserInfoListener(info => {
-        console.log(
-          "PURCHASES updatedPurchaserInfoReceived " + JSON.stringify(info)
-        );
-      });
-      Purchases.identify(
-        "purchases_sample_id_4",
+      this.purchases.identify("purchases_sample_id_4").subscribe(
         info => {
           console.log("PURCHASES identify " + JSON.stringify(info));
         },
@@ -41,8 +41,7 @@ export class HomePage {
           console.log("PURCHASES identify " + JSON.stringify(error));
         }
       );
-      Purchases.getProducts(
-        ["onemonth_freetrial"],
+      this.purchases.getProducts(["onemonth_freetrial"]).subscribe(
         products => {
           console.log("PURCHASES products fetched " + JSON.stringify(products));
         },
@@ -50,16 +49,19 @@ export class HomePage {
           console.log("PURCHASES products fetched " + JSON.stringify(error));
         }
       );
-      Purchases.getPurchaserInfo(info => {
-        console.log("PURCHASES getPurchaserInfo " + JSON.stringify(info));
-      }, error => {
-        console.log("PURCHASES getPurchaserInfo " + JSON.stringify(error));
-      });
-      Purchases.addAttributionData(
-        { data: "yolo" },
-        Purchases.ATTRIBUTION_NETWORKS.APPLE_SEARCH_ADS
+      this.purchases.getPurchaserInfo().subscribe(
+        info => {
+          console.log("PURCHASES getPurchaserInfo " + JSON.stringify(info));
+        },
+        error => {
+          console.log("PURCHASES getPurchaserInfo " + JSON.stringify(error));
+        }
       );
-      Purchases.getEntitlements(
+      this.purchases.addAttributionData(
+        { data: "yolo" },
+        ATTRIBUTION_NETWORKS.APPLE_SEARCH_ADS
+      );
+      this.purchases.getEntitlements().subscribe(
         entitlements => {
           console.log(
             "PURCHASES getEntitlements " + JSON.stringify(entitlements)
@@ -69,11 +71,10 @@ export class HomePage {
           console.log("PURCHASES getEntitlements " + JSON.stringify(error));
         }
       );
-      Purchases.getAppUserID(appUserID => {
+      this.purchases.getAppUserID().subscribe(appUserID => {
         console.log("PURCHASES appUserID " + appUserID);
       });
-      Purchases.createAlias(
-        "newAppUserID",
+      this.purchases.createAlias("newAppUserID").subscribe(
         purchaserInfo => {
           console.log("PURCHASES createAlias " + JSON.stringify(purchaserInfo));
         },
@@ -85,14 +86,13 @@ export class HomePage {
   }
 
   makePurchase(product: string) {
-    Purchases.makePurchase(
-      product,
-      (info, productIdentifier: string) => {
+    this.purchases.makePurchase(product).subscribe(
+      response => {
         console.log(
           "PURCHASES makePurchase " +
-            productIdentifier +
+            response.productIdentifier +
             " " +
-            JSON.stringify(info)
+            JSON.stringify(response.purchaserInfo)
         );
       },
       error => {
@@ -102,7 +102,7 @@ export class HomePage {
   }
 
   restoreTransactions() {
-    Purchases.restoreTransactions(
+    this.purchases.restoreTransactions().subscribe(
       info => {
         console.log("PURCHASES restoreTransactions " + JSON.stringify(info));
       },
@@ -113,7 +113,7 @@ export class HomePage {
   }
 
   reset() {
-    Purchases.reset(
+    this.purchases.reset().subscribe(
       info => {
         console.log("PURCHASES reset " + JSON.stringify(info));
       },
