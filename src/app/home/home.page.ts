@@ -108,7 +108,8 @@ export class HomePage {
               " " +
               JSON.stringify(response.purchaserInfo)
           ),
-        error => console.log("PURCHASES makePurchase " + JSON.stringify(error))
+        ({ error, userCancelled }) =>
+          console.log("PURCHASES makePurchase " + JSON.stringify(error) + "; userCancelled: " + userCancelled)
       );
   }
 
